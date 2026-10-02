@@ -1,4 +1,4 @@
-# Hierarchical beta-binomial dose-response for Salmonella
+# Bayesian Beta-Binomial Dose-Response Models
 
 Master’s thesis analysis: how the **probability of infection** rises with dose, and how that curve **differs by Salmonella strain**.
 
