@@ -3,10 +3,12 @@
 #' Same model file, same priors, same seed and MCMC settings.
 #'
 #'   Rscript scripts/run_pipeline.R
+#'   Rscript scripts/run_pipeline.R --prepare-only
 #'   Rscript scripts/run_pipeline.R --refit
 
 args <- commandArgs(trailingOnly = TRUE)
 refit <- "--refit" %in% args
+prepare_only <- "--prepare-only" %in% args
 
 root <- tryCatch(here::here(), error = function(e) normalizePath("."))
 if (!file.exists(file.path(root, "R", "config.R"))) {
@@ -25,6 +27,12 @@ message(
   " dose groups, ", prepared$bugs$K, " strains (",
   paste(prepared$serovars, collapse = ", "), ")."
 )
+print(prepared$raw_subset[, c("t", "S", "log10dose", "N", "Y")])
+
+if (prepare_only) {
+  message("Stopped after data prep (--prepare-only). OpenBUGS was not called.")
+  quit(save = "no", status = 0)
+}
 
 results <- load_or_fit(prepared, refit = refit)
 table <- export_posterior_summary(results)
