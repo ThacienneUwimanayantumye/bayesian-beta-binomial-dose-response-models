@@ -1,4 +1,4 @@
-# Thesis notebook (unchanged)
+# Thesis notebook
 
 This folder holds the original R Markdown analysis from the master’s thesis.
 
