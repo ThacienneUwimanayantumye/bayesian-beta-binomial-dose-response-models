@@ -1,60 +1,78 @@
-# Hierarchical Beta-Binomial-Dose-Response-Model for Salmonella epidemiological data
+# Hierarchical beta-binomial dose-response for Salmonella
 
-## Overview
-This repository demonstrates the use of a hierarchical beta-binomial dose-response model to analyze Salmonella epidemiological data. The model investigates strain-specific variability and predicts infection probabilities for new strains.
+Master’s thesis analysis: how the **probability of infection** rises with dose, and how that curve **differs by Salmonella strain**.
 
-The project employs Bayesian inference with OpenBUGS and R for parameter estimation, showcasing advanced data analysis and visualization techniques. It is designed for scientific reproducibility and can be used as a portfolio piece.
+The model is a hierarchical beta-binomial. Strains share a common mean, each strain has its own intercept, and a **new, unseen strain** can be predicted from the same hierarchy. Inference is Bayesian (OpenBUGS, three chains).
 
- ## Features
+This repository is that thesis notebook, turned into a pipeline you can rerun. The model file, priors, seed, and MCMC settings are unchanged.
 
-- **Hierarchical Model:** Incorporates hyperparameters for strain-specific dose-response variability.
-* **Bayesian Inference:** Implements MCMC to estimate parameters using OpenBUGS.
-+ **Predictive Analysis:** Includes predictions for a new strain.
-- **Visualization:** Generates detailed plots for MCMC convergence, contour analysis, histograms, and dose-response curves.
+Thesis figures (PDF): [infection curves and ED50](docs/figures/HBB_Pinf_with_ED50_segments.pdf) · [log10(α)–log10(β) contours](docs/figures/HBB_cont.pdf) · [u histograms](docs/figures/HBB_U_with_CI_in_Title.pdf) · [MCMC traces](docs/figures/HBB_trace.pdf)
 
- ## Prerequisites
+## What it answers
 
- To reproduce the analysis, ensure the following are installed:
+Given outbreak counts \(Y\) infected out of \(N\) exposed at a recorded dose, estimate \(P(\text{infection} \mid \text{dose}, \text{strain})\) for:
 
- ### R Packages
- `install.packages(c("R2OpenBUGS", "ggplot2", "MASS", "tidyr", "grid", "gridExtra", "coda", "Hmisc"))`
+- four serovars in the fitted subset (*S. enteritidis*, *S. heidelberg*, *S. oranienburg*, *S. typhimurium*)
+- a pooled “overall” curve
+- a new strain drawn from the same population of strains
 
-### OpenBUGS
-Download and install OpenBUGS from https://openbugs.software.informer.com/
-## How to Reproduce the Analysis
-### Step 1: Clone the Repository
-`git clone https://github.com/ThacienneUwimanayantumye/Beta-Binomial-Dose-Response-Models-for-Salmonella-data
-cd Hierarchical-Beta-Binomial-Model`
+Host status in the published fit is **Normal** only (susceptible hosts are excluded, as in the thesis).
 
-### Step 2: Set Up the Environment
-Ensure all required R packages are installed and OpenBUGS is properly configured.
+## Data
 
-### Step 3: Run the Analysis
-1. Open hierarchical_model.Rmd in RStudio.
-2. Knit the file to generate a complete report:
-   - Set the output to PDF, HTML, or Word as needed.
+`data/raw/salmonella.csv` — outbreak rows with:
 
-### Results
+| Column | Meaning |
+|---|---|
+| `t` | Serovar |
+| `S` | Host status (`Normal` / `Susceptible`) |
+| `log10dose` | Log10 of the ingested dose |
+| `N` | Number exposed |
+| `Y` | Number of cases |
 
-**MCMC Diagnostics**
-  The trace plots indicate convergence across all monitored parameters.
-  
-**Parameter Exploration**
-The contour plots to depict the posterior density of log10 of the estimated parameters
+## Model (unchanged)
 
-**Dose-Response Curves**
-The dose-response relationship is visualized with credible intervals and observed data points
+BUGS code: [`inst/bugs/hierarchical_dose_response_model_sigmapriors.txt`](inst/bugs/hierarchical_dose_response_model_sigmapriors.txt)
 
-## Dataset Description
-The analysis uses a subset of Salmonella epidemiological data with the following columns:
+- Infection probability is the beta-Poisson / beta-binomial form used in the thesis (`p_inf` from `alpha`, `beta`, and dose).
+- Strain-level `w[k]`, `z[k]` sit under global `w_0`, `z_0` with half-normal `sigma_w`, `sigma_z`.
+- `wnew`, `znew` are the predictive draw for a new strain.
 
-- **log10dose**: Log-transformed dose levels.
-- **Y**: Number of cases.
-- **N**: Total number of individuals in the sample.
-- **t**: Strain type (categorical variable).
+MCMC: seed `123`, `n.chains = 3`, `n.iter = 10000`, `n.burnin = 1000`, `n.thin = 2`.
 
-## Future Work
-- Enhance strain-specific parameter tuning.
-- Compare hierarchical beta-binomial with other models (e.g., logistic regression).
-- Expand analysis to additional datasets.
- .
+## How to rerun
+
+1. Install [OpenBUGS](https://www.mrc-bsu.cam.ac.uk/software/bugs/openbugs/) and the R packages:
+
+```r
+install.packages(c("R2OpenBUGS", "ggplot2", "MASS", "tidyr", "gridExtra", "coda", "here", "testthat"))
+```
+
+2. From the repository root:
+
+```r
+testthat::test_dir("tests/testthat")
+```
+
+```bash
+Rscript scripts/run_pipeline.R
+```
+
+The first fit writes `data/derived/bugs_fit.rds`. Later runs reuse it. Pass `--refit` to sample again with the same settings.
+
+Figures from a new run go to `output/`. The PDFs in `docs/figures/` are the thesis plots.
+
+## Layout
+
+| Path | Role |
+|---|---|
+| `R/` | Data prep, OpenBUGS fit, figures |
+| `scripts/run_pipeline.R` | One-command reproduce |
+| `inst/bugs/` | Model (source of truth) |
+| `data/raw/` | Outbreak table |
+| `docs/figures/` | Thesis figures |
+| `analysis/thesis-notebook/` | Original R Markdown, unmodified |
+
+## License
+
+MIT. Outbreak figures are from the thesis data file in `data/raw/`.

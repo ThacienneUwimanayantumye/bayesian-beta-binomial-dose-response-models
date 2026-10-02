@@ -1,0 +1,17 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+.DS_Store
+*.Rout
+.quarto/
+
+# OpenBUGS / R2OpenBUGS scratch
+OpenBUGS-*
+CODA*
+*.bug
+*.odc
+
+# MCMC objects are large; summaries and thesis figures are committed
+data/derived/*.rds
+output/
