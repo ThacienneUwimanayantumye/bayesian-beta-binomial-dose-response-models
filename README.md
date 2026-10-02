@@ -30,7 +30,7 @@ Host status in the published fit is **Normal** only (susceptible hosts are exclu
 | `N` | Number exposed |
 | `Y` | Number of cases |
 
-## Model (unchanged)
+## Model
 
 BUGS code: [`inst/bugs/hierarchical_dose_response_model_sigmapriors.txt`](inst/bugs/hierarchical_dose_response_model_sigmapriors.txt)
 
